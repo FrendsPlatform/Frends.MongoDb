@@ -11,7 +11,6 @@ namespace Frends.Community.MongoDB.Tests
     public class MongoDbTests
     {
 
-        #region TestVariables
         public string JSON = @"{
   'Stores': [
     'Lambton Quay',
@@ -42,8 +41,6 @@ namespace Frends.Community.MongoDB.Tests
     }
   ]
 }";
-        #endregion
-
         static readonly DatabaseConnection DatabaseConnectionInstance = new DatabaseConnection
         {
             ServerAddress = "localhost",
@@ -54,9 +51,8 @@ namespace Frends.Community.MongoDB.Tests
             Password = ""
         };
 
-    #region Mongo
-    [TestMethod]
-    public void TestInsertDocumentToMongoDb()
+        [TestMethod]
+        public void TestInsertDocumentToMongoDb()
         {
             Insert.InsertParameters parameters = new Insert.InsertParameters
             {
@@ -111,9 +107,7 @@ namespace Frends.Community.MongoDB.Tests
 
             Assert.IsTrue(result > 0);
         }
-        #endregion Mongo
 
-        #region GridFS
         [TestMethod]
         public void TestUploadDocumentToGridFs()
         {
@@ -196,6 +190,5 @@ namespace Frends.Community.MongoDB.Tests
 
             Assert.AreEqual(true, result);
         }
-        #endregion GridFS
     }
 }

@@ -1,12 +1,12 @@
-﻿using System.ComponentModel;
-using System.Text;
-using Frends.Community.MongoDB.Helpers;
+using Frends.Mongo.Helpers;
+using MongoDB.Bson;
+using System.ComponentModel;
 
-namespace Frends.Community.MongoDB.GridFS
+namespace Frends.Mongo
 {
-    public class Upload
+    public class Insert
     {
-        public class UploadParameters
+        public class InsertParameters
         {
             /// <summary>
             /// The database connection
@@ -20,36 +20,27 @@ namespace Frends.Community.MongoDB.GridFS
             [DisplayName("Document")]
             [DefaultValue("{ 'foo':'bar', 'bar': 'foo' }")]
             public string Document { get; set; }
-
-            /// <summary>
-            /// The name of the file to upload to GridFS
-            /// </summary>
-            [DisplayName("Filename")]
-            [DefaultValue("\"fileName\"")]
-            public string FileName { get; set; }
         }
 
         /// <summary>
-        /// Uploads a document to MongoDB/GridFS. In this method, the document is provided "inline" as JSON in the Document-field
+        /// Inserts a document to MongoDB
         /// </summary>
         /// <param name="parameters">The parameters</param>
-        /// <returns>The GridFS ID of the </returns>
-        public static string UploadToMongoGridFS(UploadParameters parameters)
+        /// <returns>The MongoDB ID of the added document</returns>
+        public static string InsertDocument(InsertParameters parameters)
         {
             var helper = new DatabaseConnectionHelper();
-
-            var bucket = helper.GetGridFSBucket(parameters.DbConnection.ServerAddress,
+            var collection = helper.GetMongoCollection(parameters.DbConnection.ServerAddress,
                                                 parameters.DbConnection.ServerPort,
                                                 parameters.DbConnection.Database,
                                                 parameters.DbConnection.CollectionName,
                                                 parameters.DbConnection.UserName,
                                                 parameters.DbConnection.Password);
 
-            // Convert the document to bytes so it can be saved to Mongo/GridFS
-            byte[] documentAsBytes = Encoding.UTF8.GetBytes(parameters.Document);
-
-            var id = bucket.UploadFromBytes(parameters.FileName, documentAsBytes);
-            return id.ToString();
+            // Insert document
+            var bsonDocument = BsonDocument.Parse(parameters.Document);
+            collection.InsertOne(bsonDocument);
+            return bsonDocument["_id"].ToString();
         }
     }
 }

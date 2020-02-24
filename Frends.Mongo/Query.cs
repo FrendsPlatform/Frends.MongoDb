@@ -1,18 +1,22 @@
-﻿using Frends.Community.MongoDB.Helpers;
+using Frends.Mongo.Helpers;
 using MongoDB.Bson;
+using MongoDB.Bson.IO;
 using MongoDB.Driver;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
-namespace Frends.Community.MongoDB
+namespace Frends.Mongo
 {
-    public class Update
+    public class Query
     {
-        public class UpdateParameters
+        public class QueryParameters
         {
             /// <summary>
             /// The database connection
             /// </summary>
-            [DisplayName("MongoDB Database Connection")]
+            [DisplayName("CassandraDB Database Connection")]
             public DatabaseConnection DbConnection { get; set; }
 
             /// <summary>
@@ -21,21 +25,14 @@ namespace Frends.Community.MongoDB
             [DisplayName("Filter")]
             [DefaultValue("{ 'foo':'bar', 'bar': 'foo' }")]
             public string FilterString { get; set; }
-
-            /// <summary>
-            /// The values to update in the document, as JSON
-            /// </summary>
-            [DisplayName("Filter")]
-            [DefaultValue("{$set: {bar:'foobar'}}")]
-            public string UpdateString { get; set; }
         }
 
         /// <summary>
-        /// Updates all files in MongoDB that match the search criteria
+        /// Searches for documents in MongoDB
         /// </summary>
         /// <param name="parameters">The parameters</param>
-        /// <returns>The count of updated documents</returns>
-        public static long UpdateDocuments(UpdateParameters parameters)
+        /// <returns>A list with the documents matching the search criteria</returns>
+        public static JArray QueryDocuments(QueryParameters parameters)
         {
             var helper = new DatabaseConnectionHelper();
             var collection = helper.GetMongoCollection(parameters.DbConnection.ServerAddress,
@@ -47,10 +44,15 @@ namespace Frends.Community.MongoDB
 
             // Initialize the filter
             var filter = parameters.FilterString;
+            var cursor = collection.Find(filter).ToCursor();
 
-            UpdateDefinition<BsonDocument> update = parameters.UpdateString;
+            JArray documentList = new JArray();
 
-            return collection.UpdateMany(filter, update).ModifiedCount;
+            var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+
+            var list = cursor.ToEnumerable().Select(document => document.ToJson(jsonSettings)).ToList();
+
+            return JArray.FromObject(list);
         }
     }
 }

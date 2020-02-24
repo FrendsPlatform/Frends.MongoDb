@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Frends.Community.MongoDB.Helpers;
+using System.Threading;
+using Frends.Mongo.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework.Internal;
 
-namespace Frends.Community.MongoDB.Tests
+namespace Frends.Mongo.Tests
 {
     [TestClass]
     //[Ignore("The tests in this file require a live MongoDB instance")]
-    public class MongoDbTests
+    public class MongoTests
     {
 
         public string JSON = @"{
@@ -74,7 +77,7 @@ namespace Frends.Community.MongoDB.Tests
                 FilterString = "{'bar':'foo'}"
             };
 
-            List<string> documents = Query.QueryDocuments(upParams);
+            JArray documents = Query.QueryDocuments(upParams);
 
             Assert.IsTrue(documents.Count > 0);
         }
@@ -91,7 +94,7 @@ namespace Frends.Community.MongoDB.Tests
 
             var result = Update.UpdateDocuments(parameters);
 
-            Assert.IsTrue(result > 0);
+            Assert.IsTrue(result.count> 0);
         }
 
         [TestMethod]
@@ -105,7 +108,7 @@ namespace Frends.Community.MongoDB.Tests
 
             var result = Delete.DeleteDocuments(parameters);
 
-            Assert.IsTrue(result > 0);
+            Assert.IsTrue(result.count > 0);
         }
 
         [TestMethod]
@@ -118,7 +121,8 @@ namespace Frends.Community.MongoDB.Tests
                 FileName = "Test" + DateTime.Now
             };
 
-            var id = GridFS.Upload.UploadToMongoGridFS(parameters);
+            CancellationToken token = new CancellationToken();
+            var id = GridFS.Upload.UploadToMongoGridFS(parameters, token);
 
             Assert.AreNotEqual("", id);
         }
@@ -134,8 +138,8 @@ namespace Frends.Community.MongoDB.Tests
                 DbConnection = DatabaseConnectionInstance,
                 FilePath = tmpFilePath
             };
-
-            var id = GridFS.UploadFile.UploadFileToMongoGridFS(parameters);
+            CancellationToken token = new CancellationToken();
+            var id = GridFS.UploadFile.UploadFileToMongoGridFS(parameters, token);
 
             Assert.AreNotEqual("", id);
         }
@@ -143,16 +147,17 @@ namespace Frends.Community.MongoDB.Tests
         [TestMethod]
         public void TestFileDownloadFromGridFs()
         {
+            CancellationToken token = new CancellationToken();
             var fileName = Path.GetFileName(Path.GetTempFileName());
             var fileId = GridFS.Upload.UploadToMongoGridFS(
-                new GridFS.Upload.UploadParameters { DbConnection = DatabaseConnectionInstance, Document = "{ \"a\": 123 }", FileName = fileName });
+                new GridFS.Upload.UploadParameters { DbConnection = DatabaseConnectionInstance, Document = "{ \"a\": 123 }", FileName = fileName }, token);
             GridFS.Download.DownloadParameters parameters = new GridFS.Download.DownloadParameters
             {
                 DbConnection = DatabaseConnectionInstance,
-                Id = fileId
+                Id = fileId.ToString()
             };
 
-            var result = GridFS.Download.DownloadFromMongoGridFS(parameters);
+            var result = GridFS.Download.DownloadDocumentFromMongoGridFS(parameters, token);
 
             Assert.AreNotEqual("", result);
         }
@@ -161,29 +166,31 @@ namespace Frends.Community.MongoDB.Tests
         public void TestFindFromGridFs()
         {
             var fileName = Path.GetFileName(Path.GetTempFileName());
+            CancellationToken token = new CancellationToken();
             var fileId = GridFS.Upload.UploadToMongoGridFS(
-                new GridFS.Upload.UploadParameters { DbConnection = DatabaseConnectionInstance, Document = "{ \"a\": 123 }", FileName = fileName });
+                new GridFS.Upload.UploadParameters { DbConnection = DatabaseConnectionInstance, Document = "{ \"a\": 123 }", FileName = fileName }, token);
             GridFS.Find.FindParameters parameters = new GridFS.Find.FindParameters
             {
                 DbConnection = DatabaseConnectionInstance,
                 Filter = "{ 'filename': '" + fileName + "' }"
             };
 
-            var r = GridFS.Find.FindFromMongoGridFS(parameters);
+            var r = GridFS.Find.FindFromMongoGridFS(parameters, token);
 
-            Assert.AreNotEqual(0, r.Count);
+            Assert.AreNotEqual(0, r.Result.Count);
         }
 
         [TestMethod]
         public void TestDeleteFromGridFs()
         {
             var fileName = Path.GetFileName(Path.GetTempFileName());
+            CancellationToken token = new CancellationToken();
             var fileId = GridFS.Upload.UploadToMongoGridFS(
-                new GridFS.Upload.UploadParameters { DbConnection = DatabaseConnectionInstance, Document = "{ \"a\": 123 }", FileName = fileName });
+                new GridFS.Upload.UploadParameters { DbConnection = DatabaseConnectionInstance, Document = "{ \"a\": 123 }", FileName = fileName }, token);
             GridFS.Delete.DeleteParameters parameters = new GridFS.Delete.DeleteParameters
             {
                 DbConnection = DatabaseConnectionInstance,
-                Id = fileId
+                Id = fileId.ToString()
             };
 
             var result = GridFS.Delete.DeleteFromMongoGridFS(parameters);

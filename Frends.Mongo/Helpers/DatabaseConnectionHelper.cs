@@ -1,9 +1,9 @@
-﻿using MongoDB.Bson;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using System;
 
-namespace Frends.Community.MongoDB.Helpers
+namespace Frends.Mongo.Helpers
 {
     public class DatabaseConnectionHelper
     {
@@ -19,8 +19,8 @@ namespace Frends.Community.MongoDB.Helpers
         public IMongoDatabase GetMongoDatabase(string serverAddress, string serverPort, string database, string username, string password)
         {
             // Establish the connection:
-            var credentials = MongoCredential.CreateMongoCRCredential(database, username, password);
-            
+            var credentials = MongoCredential.CreateCredential(database, username, password);
+
             var clientSettings = new MongoClientSettings
             {
                 Credential = string.IsNullOrEmpty(username) ? null : credentials,

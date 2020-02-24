@@ -1,6 +1,7 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
-namespace Frends.Community.MongoDB.Helpers
+namespace Frends.Mongo.Helpers
 {
     public class DatabaseConnection
     {
@@ -8,14 +9,14 @@ namespace Frends.Community.MongoDB.Helpers
         /// The address of the MongoDB server
         /// </summary>
         [DisplayName("Server Address")]
-        [DefaultValue("serverName")]
+        [DisplayFormat(DataFormatString = "Text")]
         public string ServerAddress { get; set; }
 
         /// <summary>
         /// The port used to connect to the MongoDB server
         /// </summary>
         [DisplayName("Server Port")]
-        [DefaultValue("")]
+        [DisplayFormat(DataFormatString = "")]
         public string ServerPort { get; set; }
 
         /// <summary>
@@ -41,6 +42,7 @@ namespace Frends.Community.MongoDB.Helpers
         /// <summary>
         /// The password to use when connecting to Mongo
         /// </summary>
+        [PasswordPropertyText]
         [DisplayName("Password")]
         public string Password { get; set; }
     }

@@ -1,8 +1,10 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
-using Frends.Community.MongoDB.Helpers;
+using System.Threading;
+using System.Threading.Tasks;
+using Frends.Mongo.Helpers;
 
-namespace Frends.Community.MongoDB.GridFS
+namespace Frends.Mongo.GridFS
 {
     public class UploadFile
     {
@@ -27,7 +29,7 @@ namespace Frends.Community.MongoDB.GridFS
         /// </summary>
         /// <param name="parameters">The parameters</param>
         /// <returns>The GridFS ID of the uploaded document</returns>
-        public static string UploadFileToMongoGridFS(UploadParameters parameters)
+        public static async Task<string> UploadFileToMongoGridFS(UploadParameters parameters, CancellationToken cancellationtoken)
         {
             var helper = new DatabaseConnectionHelper();
 
@@ -39,14 +41,14 @@ namespace Frends.Community.MongoDB.GridFS
                 parameters.DbConnection.Password);
 
             var fileName = Path.GetFileName(parameters.FilePath);
-            string id;
+            MongoDB.Bson.ObjectId id;
 
             using (FileStream fs = File.OpenRead(parameters.FilePath))
             {
-                id = bucket.UploadFromStream(fileName, fs).ToString();
+                id = await bucket.UploadFromStreamAsync(fileName, fs);
             }
 
-            return id;
-        }
+            return id.ToString();
+        }   
     }
 }

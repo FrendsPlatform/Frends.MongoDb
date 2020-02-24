@@ -1,13 +1,15 @@
-﻿using System;
+using System;
 using System.ComponentModel;
-using Frends.Community.MongoDB.Helpers;
+using System.Threading;
+using System.Threading.Tasks;
+using Frends.Mongo.Helpers;
 using MongoDB.Bson;
 
-namespace Frends.Community.MongoDB.GridFS
+namespace Frends.Mongo.GridFS
 {
-    public class Delete
+    public class Download
     {
-        public class DeleteParameters
+        public class DownloadParameters
         {
             /// <summary>
             /// The database connection
@@ -24,11 +26,11 @@ namespace Frends.Community.MongoDB.GridFS
         }
 
         /// <summary>
-        /// Deletes one document from mongoDB
+        /// Downloads a document from MongoDB GridFS based on ID
         /// </summary>
         /// <param name="parameters">the parameters</param>
-        /// <returns>A boolean representing the result of the delete operation: TRUE on success, FALSE on failure</returns>
-        public static bool DeleteFromMongoGridFS(DeleteParameters parameters)
+        /// <returns>The document as a string</returns>
+        public static async Task<string> DownloadDocumentFromMongoGridFS(DownloadParameters parameters, CancellationToken cancellationtoken)
         {
             var helper = new DatabaseConnectionHelper();
 
@@ -41,18 +43,11 @@ namespace Frends.Community.MongoDB.GridFS
 
             ObjectId id = new ObjectId(parameters.Id);
 
-            try
-            {
-                bucket.Delete(id);
-            }
-            catch (Exception e)
-            {
-                if (e.Message == "GridFS file not found: file id " + parameters.Id + ".") return false; // Id not found - return false
+            var bytes = await bucket.DownloadAsBytesAsync(id);
+            var stringResult = System.Text.Encoding.UTF8.GetString(bytes);
 
-                throw; // Some other error - throw it
-            }
-
-            return true;
+            return stringResult;
         }
+
     }
 }

@@ -1,15 +1,14 @@
-﻿using Frends.Community.MongoDB.Helpers;
+using Frends.Mongo.Helpers;
 using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Driver;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
-namespace Frends.Community.MongoDB
+namespace Frends.Mongo
 {
-    public class Query
+    public class Update
     {
-        public class QueryParameters
+        public class UpdateParameters
         {
             /// <summary>
             /// The database connection
@@ -20,17 +19,31 @@ namespace Frends.Community.MongoDB
             /// <summary>
             /// The filter to use for the search, in JSON
             /// </summary>
+            [DisplayFormat(DataFormatString = "Jsont")]
             [DisplayName("Filter")]
             [DefaultValue("{ 'foo':'bar', 'bar': 'foo' }")]
             public string FilterString { get; set; }
+
+            /// <summary>
+            /// The values to update in the document, as JSON
+            /// </summary>
+            [DisplayFormat(DataFormatString = "Json")]
+            [DisplayName("Filter")]
+            [DefaultValue("{$set: {bar:'foobar'}}")]
+            public string UpdateString { get; set; }
+        }
+
+        public class UpdateResult
+        {
+            public long count;
         }
 
         /// <summary>
-        /// Searches for documents in MongoDB
+        /// Updates all files in MongoDB that match the search criteria
         /// </summary>
         /// <param name="parameters">The parameters</param>
-        /// <returns>A list with the documents matching the search criteria</returns>
-        public static List<string> QueryDocuments(QueryParameters parameters)
+        /// <returns>The count of updated documents</returns>
+        public static UpdateResult UpdateDocuments(UpdateParameters parameters)
         {
             var helper = new DatabaseConnectionHelper();
             var collection = helper.GetMongoCollection(parameters.DbConnection.ServerAddress,
@@ -42,17 +55,13 @@ namespace Frends.Community.MongoDB
 
             // Initialize the filter
             var filter = parameters.FilterString;
-            var cursor = collection.Find(filter).ToCursor();
 
-            List<string> documentList = new List<string>();
-            var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+            UpdateDefinition<BsonDocument> update = parameters.UpdateString;
+            var result = new UpdateResult();
 
-            foreach (var document in cursor.ToEnumerable())
-            {
-                documentList.Add(document.ToJson(jsonSettings));
-            }
+            result.count = collection.UpdateMany(filter, update).ModifiedCount;
 
-            return documentList;
+            return result;
         }
     }
 }

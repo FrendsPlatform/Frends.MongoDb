@@ -13,22 +13,12 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
     <PackageReference Include="coverlet.collector" Version="3.1.2" />
+	<PackageReference Include="MongoDB.Bson" Version="2.18.0" />
+	<PackageReference Include="MongoDB.Driver" Version="2.18.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Frends.MongoDB.Update\Frends.MongoDB.Update.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="MongoDB.Bson">
-      <HintPath>..\Frends.MongoDB.Update\libs\MongoDB.Bson.dll</HintPath>
-    </Reference>
-    <Reference Include="MongoDB.Driver">
-      <HintPath>..\Frends.MongoDB.Update\libs\MongoDB.Driver.dll</HintPath>
-    </Reference>
-    <Reference Include="MongoDB.Driver.Core">
-      <HintPath>..\Frends.MongoDB.Update\libs\MongoDB.Driver.Core.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
